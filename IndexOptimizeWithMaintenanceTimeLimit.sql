@@ -1,0 +1,1 @@
+EXECUTE [dbo].[IndexOptimize] @UpdateStatistics = 'ALL', @TimeLimit='8300', @OnlyModifiedStatistics = 'Y', @Databases = 'USER_DATABASES', @LogToTable = 'Y'
