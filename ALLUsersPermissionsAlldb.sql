@@ -1,99 +1,4 @@
-/*
-Script DB Level Permissions 
-*/
--- roles first
--- Role Members
-create table AppRoleMembers_t
-	(lineData	varchar(2000))
-
-create table AppRoleMembers_Aggregate_t
-	(dbname		nvarchar(128)
-	,login		nvarchar(128)
-	,isapprole	int
-	,pw_len		int)
-
-
-insert AppRoleMembers_t
-	select 'select 		db_name()
-		,t1.name
-		,t2.isapprole
-		,len(t1.password) 
-		from master.dbo.syslogins as t1 
-		inner join ' + name + '.dbo.sysusers as t2 on t1.name = t2.name 
-		where t2.isapprole = 1 
-		and t1.password is null' 
-	from master.dbo.sysdatabases 
-	where dbid > 4
-	and databasepropertyex(name, 'SQLSortOrder') = databasepropertyex('master', 'SQLSortOrder')
-	order by name
-declare @tsql	varchar(4000)
-
-declare db_cur2 cursor
-for
- 	select lineData from AppRoleMembers_t
-
-open db_cur2
-
-fetch next from db_cur2 into @tsql
-
-set @tsql = 'insert AppRoleMembers_Aggregate_t ' + @tsql
-
-while (@@fetch_status = 0)
-begin
-	--print @tsql
-	exec (@tsql)
-	fetch next from db_cur2 into @tsql
-end
-
-close db_cur2
-
-deallocate db_cur2
-
-
---select * from AppRoleMembers_t
-print '*** Check count on AppRoleMembers_Aggregate ***)'
-if (select count(*) from AppRoleMembers_Aggregate_t) = 0
-begin
-	print 'No application roles with blank passwords exist on this server at this time.'
-	--
-end
-
-	select * from AppRoleMembers_Aggregate_t
-
-
-drop table AppRoleMembers_t
-drop table AppRoleMembers_Aggregate_t
-
-set nocount on
-
-declare @tsql2	varchar(70),
-	@name	varchar(64)
-
-declare db_cur cursor
-for
- 	select name from master.dbo.sysdatabases where dbid NOT IN (2,3) order by name
-
-open db_cur
-
-fetch next from db_cur into @name
-
-set @tsql2 = 'exec ' + @name + '.dbo.sp_helprolemember'
-
-while (@@fetch_status = 0)
-begin
-	print 'Roles in database ' + @name + ':'
-	set @tsql2 = 'exec ' + @name + '.dbo.sp_helprolemember'
-	exec (@tsql2)
-	fetch next from db_cur into @name
-end
-
-
-close db_cur
-
-deallocate db_cur
---- then more detailed grants
-
-DECLARE 
+dECLARE 
     @sql VARCHAR(2048)
     ,@sort INT 
 	,@database nVarchar(200)
@@ -122,9 +27,7 @@ SELECT '-- [-- DB CONTEXT --] --' AS [-- SQL STATEMENTS --],
 UNION
 SELECT  'USE' + SPACE(1) + QUOTENAME(@database)  AS [-- SQL STATEMENTS --],
         1 AS [-- RESULT ORDER HOLDER --]
-
-UNION
-
+UNION 
 SELECT '' AS [-- SQL STATEMENTS --],
         2 AS [-- RESULT ORDER HOLDER --]
 
@@ -141,6 +44,7 @@ SELECT  'IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] 
         4 AS [-- RESULT ORDER HOLDER --]
 FROM    sys.database_principals AS rm
 WHERE [type] IN ('U', 'S', 'G') -- windows users, sql users, windows groups
+and [name] not in ('##MS_PolicyEventProcessingLogin##','dbo','guest')
 
 UNION
 
@@ -199,8 +103,8 @@ FROM
     sys.objects AS obj
             ON perm.major_id = obj.[object_id]
         INNER JOIN
-    sys.database_principals AS usr
-            ON perm.grantee_principal_id = usr.principal_id
+    sys.database_principals AS usr   -- exclude public grants select * from sys.database_principals
+            ON perm.grantee_principal_id = usr.principal_id AND usr.principal_id!=0 AND usr.principal_id!=5
         LEFT JOIN
     sys.columns AS cl
             ON cl.column_id = perm.minor_id AND cl.[object_id] = perm.major_id
@@ -238,6 +142,7 @@ FROM    sys.database_permissions AS perm
     INNER JOIN
     sys.database_principals AS usr
     ON perm.grantee_principal_id = usr.principal_id
+	AND usr.principal_id!=0 AND usr.principal_id!=5
 --WHERE usr.name = @OldUser
 
 WHERE   [perm].[major_id] = 0
