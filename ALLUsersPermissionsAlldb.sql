@@ -6,7 +6,7 @@ dECLARE
 DECLARE databasecursor CURSOR FAST_FORWARD FOR 
 SELECT name 
 FROM MASTER.dbo.sysdatabases 
-WHERE name NOT IN ('model')
+WHERE name NOT IN ('model','temp')
 
 OPEN databasecursor
 
@@ -117,37 +117,6 @@ UNION
 
 SELECT '' AS [-- SQL STATEMENTS --],
     10 AS [-- RESULT ORDER HOLDER --]
-
-UNION
-
-/*********************************************/
-/*********    DB LEVEL PERMISSIONS   *********/
-/*********************************************/
-SELECT '-- [--DB LEVEL PERMISSIONS --] --' AS [-- SQL STATEMENTS --],
-        11 AS [-- RESULT ORDER HOLDER --]
-UNION
-SELECT  CASE 
-            WHEN perm.state <> 'W' THEN perm.state_desc --W=Grant With Grant Option
-            ELSE 'GRANT'
-        END
-    + SPACE(1) + perm.permission_name --CONNECT, etc
-    + SPACE(1) + 'TO' + SPACE(1) + '[' + USER_NAME(usr.principal_id) + ']' COLLATE database_default --TO <user name>
-    + CASE 
-            WHEN perm.state <> 'W' THEN SPACE(0) 
-            ELSE SPACE(1) + 'WITH GRANT OPTION' 
-      END
-        AS [-- SQL STATEMENTS --],
-        12 AS [-- RESULT ORDER HOLDER --]
-FROM    sys.database_permissions AS perm
-    INNER JOIN
-    sys.database_principals AS usr
-    ON perm.grantee_principal_id = usr.principal_id
-	AND usr.principal_id!=0 AND usr.principal_id!=5
---WHERE usr.name = @OldUser
-
-WHERE   [perm].[major_id] = 0
-    AND [usr].[principal_id] > 4 -- 0 to 4 are system users/schemas
-    AND [usr].[type] IN ('G', 'S', 'U') -- S = SQL user, U = Windows user, G = Windows group
 
 UNION
 
