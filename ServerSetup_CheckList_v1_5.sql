@@ -370,9 +370,6 @@ EXEC msdb.dbo.sp_set_sqlagent_properties @jobhistory_max_rows=10000,
 		@databasemail_profile=N'Support_dba', 
 		@use_databasemail=1
 GO
-
--- Line 28 Script Policies
--- conditions first:
 Declare @condition_id INT  -- scripted from SR/WF prod
 EXEC msdb.dbo.sp_syspolicy_add_condition @name=N'CheckSum', @description=N'True if page_verify is set to checksum', @facet=N'Database', @expression=N'<Operator>
   <TypeClass>Bool</TypeClass>
@@ -508,44 +505,44 @@ Select @condition_id
 
 GO
 
-Declare @condition_id int
-EXEC msdb.dbo.sp_syspolicy_add_condition @name=N'Log Backups', @description=N'Checks to see if log has been backed up in the last 3 Hours.', @facet=N'IDatabaseMaintenanceFacet', @expression=N'<Operator>
-  <TypeClass>Bool</TypeClass>
-  <OpType>GE</OpType>
-  <Count>2</Count>
-  <Attribute>
-    <TypeClass>DateTime</TypeClass>
-    <Name>LastLogBackupDate</Name>
-  </Attribute>
-  <Function>
-    <TypeClass>DateTime</TypeClass>
-    <FunctionType>DateAdd</FunctionType>
-    <ReturnType>DateTime</ReturnType>
-    <Count>3</Count>
-    <Constant>
-      <TypeClass>String</TypeClass>
-      <ObjType>System.String</ObjType>
-      <Value>hh</Value>
-    </Constant>
-    <Constant>
-      <TypeClass>Numeric</TypeClass>
-      <ObjType>System.Double</ObjType>
-      <Value>-3</Value>
-    </Constant>
-    <Function>
-      <TypeClass>DateTime</TypeClass>
-      <FunctionType>GetDate</FunctionType>
-      <ReturnType>DateTime</ReturnType>
-      <Count>0</Count>
-    </Function>
-  </Function>
-</Operator>', @is_name_condition=0, @obj_name=N'', @condition_id=@condition_id OUTPUT
-Select @condition_id
+--Declare @condition_id int
+--EXEC msdb.dbo.sp_syspolicy_add_condition @name=N'Log Backups', @description=N'Checks to see if log has been backed up in the last 3 Hours.', @facet=N'IDatabaseMaintenanceFacet', @expression=N'<Operator>
+--  <TypeClass>Bool</TypeClass>
+--  <OpType>GE</OpType>
+--  <Count>2</Count>
+--  <Attribute>
+--    <TypeClass>DateTime</TypeClass>
+--    <Name>LastLogBackupDate</Name>
+--  </Attribute>
+--  <Function>
+--    <TypeClass>DateTime</TypeClass>
+--    <FunctionType>DateAdd</FunctionType>
+--    <ReturnType>DateTime</ReturnType>
+--    <Count>3</Count>
+--    <Constant>
+--      <TypeClass>String</TypeClass>
+--      <ObjType>System.String</ObjType>
+--      <Value>hh</Value>
+--    </Constant>
+--    <Constant>
+--      <TypeClass>Numeric</TypeClass>
+--      <ObjType>System.Double</ObjType>
+--      <Value>-3</Value>
+--    </Constant>
+--    <Function>
+--      <TypeClass>DateTime</TypeClass>
+--      <FunctionType>GetDate</FunctionType>
+--      <ReturnType>DateTime</ReturnType>
+--      <Count>0</Count>
+--    </Function>
+--  </Function>
+--</Operator>', @is_name_condition=0, @obj_name=N'', @condition_id=@condition_id OUTPUT
+--Select @condition_id
 
 GO
 
 Declare @condition_id int
-EXEC msdb.dbo.sp_syspolicy_add_condition @name=N'Log_Growth_1000', @description=N'Checks to see if logs are set to grow in kb and set to grow by at least 1gb.', @facet=N'LogFile', @expression=N'<Operator>
+EXEC msdb.dbo.sp_syspolicy_add_condition @name=N'Log_Growth_1000', @description=N'Checks to see if logs are set to grow in kb and set to grow by at least 512mb.', @facet=N'LogFile', @expression=N'<Operator>
   <TypeClass>Bool</TypeClass>
   <OpType>AND</OpType>
   <Count>2</Count>
@@ -585,7 +582,7 @@ EXEC msdb.dbo.sp_syspolicy_add_condition @name=N'Log_Growth_1000', @description=
     <Constant>
       <TypeClass>Numeric</TypeClass>
       <ObjType>System.Double</ObjType>
-      <Value>1000</Value>
+      <Value>512</Value>
     </Constant>
   </Operator>
 </Operator>', @is_name_condition=0, @obj_name=N'', @condition_id=@condition_id OUTPUT
@@ -593,22 +590,22 @@ Select @condition_id
 
 GO
 
-Declare @condition_id int
-EXEC msdb.dbo.sp_syspolicy_add_condition @name=N'Log_Initial_Size_1000', @description=N'Is the log currently 1gb or larger', @facet=N'LogFile', @expression=N'<Operator>
-  <TypeClass>Bool</TypeClass>
-  <OpType>GE</OpType>
-  <Count>2</Count>
-  <Attribute>
-    <TypeClass>Numeric</TypeClass>
-    <Name>Size</Name>
-  </Attribute>
-  <Constant>
-    <TypeClass>Numeric</TypeClass>
-    <ObjType>System.Double</ObjType>
-    <Value>1000</Value>
-  </Constant>
-</Operator>', @is_name_condition=0, @obj_name=N'', @condition_id=@condition_id OUTPUT
-Select @condition_id
+--Declare @condition_id int
+--EXEC msdb.dbo.sp_syspolicy_add_condition @name=N'Log_Initial_Size_1000', @description=N'Is the log currently 1gb or larger', @facet=N'LogFile', @expression=N'<Operator>
+--  <TypeClass>Bool</TypeClass>
+--  <OpType>GE</OpType>
+--  <Count>2</Count>
+--  <Attribute>
+--    <TypeClass>Numeric</TypeClass>
+--    <Name>Size</Name>
+--  </Attribute>
+--  <Constant>
+--    <TypeClass>Numeric</TypeClass>
+--    <ObjType>System.Double</ObjType>
+--    <Value>1000</Value>
+--  </Constant>
+--</Operator>', @is_name_condition=0, @obj_name=N'', @condition_id=@condition_id OUTPUT
+--Select @condition_id
 
 GO
 
@@ -723,7 +720,7 @@ Select @condition_id
 GO
 
 Declare @condition_id int
-EXEC msdb.dbo.sp_syspolicy_add_condition @name=N'Successful Backups', @description=N'Looks back hours and returns true if a database has had a backup taken, false if it has not.', @facet=N'IDatabaseMaintenanceFacet', @expression=N'<Operator>
+EXEC msdb.dbo.sp_syspolicy_add_condition @name=N'Successful Backups', @description=N'Looks back 2 days and returns true if a database has had a backup taken, false if it has not.', @facet=N'IDatabaseMaintenanceFacet', @expression=N'<Operator>
   <TypeClass>Bool</TypeClass>
   <OpType>GE</OpType>
   <Count>2</Count>
@@ -744,7 +741,7 @@ EXEC msdb.dbo.sp_syspolicy_add_condition @name=N'Successful Backups', @descripti
     <Constant>
       <TypeClass>Numeric</TypeClass>
       <ObjType>System.Double</ObjType>
-      <Value>-10</Value>
+      <Value>-48</Value>
     </Constant>
     <Function>
       <TypeClass>DateTime</TypeClass>
@@ -797,45 +794,45 @@ Select @condition_id
 
 GO
 
-Declare @condition_id int
-EXEC msdb.dbo.sp_syspolicy_add_condition @name=N'User Databases', @description=N'With RoleSequenceNumber != 2, this means not the mirror role in a mirrored database.', @facet=N'Database', @expression=N'<Operator>
-  <TypeClass>Bool</TypeClass>
-  <OpType>AND</OpType>
-  <Count>2</Count>
-  <Operator>
-    <TypeClass>Bool</TypeClass>
-    <OpType>NE</OpType>
-    <Count>2</Count>
-    <Attribute>
-      <TypeClass>Bool</TypeClass>
-      <Name>IsSystemObject</Name>
-    </Attribute>
-    <Function>
-      <TypeClass>Bool</TypeClass>
-      <FunctionType>True</FunctionType>
-      <ReturnType>Bool</ReturnType>
-      <Count>0</Count>
-    </Function>
-  </Operator>
-  <Operator>
-    <TypeClass>Bool</TypeClass>
-    <OpType>NE</OpType>
-    <Count>2</Count>
-    <Attribute>
-      <TypeClass>Numeric</TypeClass>
-      <Name>MirroringRoleSequence</Name>
-    </Attribute>
-    <Constant>
-      <TypeClass>Numeric</TypeClass>
-      <ObjType>System.Double</ObjType>
-      <Value>2</Value>
-    </Constant>
-  </Operator>
-</Operator>', @is_name_condition=0, @obj_name=N'', @condition_id=@condition_id OUTPUT
-Select @condition_id
+--Declare @condition_id int
+--EXEC msdb.dbo.sp_syspolicy_add_condition @name=N'User Databases', @description=N'With RoleSequenceNumber != 2, this means not the mirror role in a mirrored database.', @facet=N'Database', @expression=N'<Operator>
+--  <TypeClass>Bool</TypeClass>
+--  <OpType>AND</OpType>
+--  <Count>2</Count>
+--  <Operator>
+--    <TypeClass>Bool</TypeClass>
+--    <OpType>NE</OpType>
+--    <Count>2</Count>
+--    <Attribute>
+--      <TypeClass>Bool</TypeClass>
+--      <Name>IsSystemObject</Name>
+--    </Attribute>
+--    <Function>
+--      <TypeClass>Bool</TypeClass>
+--      <FunctionType>True</FunctionType>
+--      <ReturnType>Bool</ReturnType>
+--      <Count>0</Count>
+--    </Function>
+--  </Operator>
+--  <Operator>
+--    <TypeClass>Bool</TypeClass>
+--    <OpType>NE</OpType>
+--    <Count>2</Count>
+--    <Attribute>
+--      <TypeClass>Numeric</TypeClass>
+--      <Name>MirroringRoleSequence</Name>
+--    </Attribute>
+--    <Constant>
+--      <TypeClass>Numeric</TypeClass>
+--      <ObjType>System.Double</ObjType>
+--      <Value>2</Value>
+--    </Constant>
+--  </Operator>
+--</Operator>', @is_name_condition=0, @obj_name=N'', @condition_id=@condition_id OUTPUT
+--Select @condition_id
 
 GO
-
+--- add new conditions here
 
 -- the policies
 Declare @object_set_id int
@@ -852,27 +849,28 @@ EXEC msdb.dbo.sp_syspolicy_add_target_set_level @target_set_id=@target_set_id, @
 GO
 
 Declare @policy_id int
-EXEC msdb.dbo.sp_syspolicy_add_policy @name=N'Check Backup Completion', @condition_name=N'Successful Backups', @policy_category=N'Maintenance Plans', @description=N'Or Is this it?', @help_text=N'Is this the message', @help_link=N'', @schedule_uid=N'b588e62f-165b-4b17-ad82-494d180ecc91', @execution_mode=4, @is_enabled=True, @policy_id=@policy_id OUTPUT, @root_condition_name=N'', @object_set=N'Check Backup Completion_ObjectSet'
+EXEC msdb.dbo.sp_syspolicy_add_policy @name=N'Check Backup Completion', @condition_name=N'Successful Backups', @policy_category=N'SmartAdmin errors', @description=N'Or Is this it?', @help_text=N'Is this the message', @help_link=N'', @execution_mode=1, @is_enabled=True, @policy_id=@policy_id OUTPUT, @root_condition_name=N'', @object_set=N'Check Backup Completion_ObjectSet'
 Select @policy_id
 
 
 GO
 
 Declare @object_set_id int
-EXEC msdb.dbo.sp_syspolicy_add_object_set @object_set_name=N'PageVerfiy Checksum_ObjectSet', @facet=N'Database', @object_set_id=@object_set_id OUTPUT
+EXEC msdb.dbo.sp_syspolicy_add_object_set @object_set_name=N'CheckSum', @facet=N'Database', @object_set_id=@object_set_id OUTPUT
 Select @object_set_id
 
 Declare @target_set_id int
-EXEC msdb.dbo.sp_syspolicy_add_target_set @object_set_name=N'PageVerfiy Checksum_ObjectSet', @type_skeleton=N'Server/Database', @type=N'DATABASE', @enabled=True, @target_set_id=@target_set_id OUTPUT
+EXEC msdb.dbo.sp_syspolicy_add_target_set @object_set_name=N'CheckSum', @type_skeleton=N'Server/Database', @type=N'DATABASE', @enabled=True, @target_set_id=@target_set_id OUTPUT
 Select @target_set_id
 
+Declare @target_set_id int
 EXEC msdb.dbo.sp_syspolicy_add_target_set_level @target_set_id=@target_set_id, @type_skeleton=N'Server/Database', @level_name=N'Database', @condition_name=N'User Databases', @target_set_level_id=0
 
 
 GO
 
-Declare @policy_id int
-EXEC msdb.dbo.sp_syspolicy_add_policy @name=N'PageVerfiy Checksum', @condition_name=N'CheckSum', @policy_category=N'SmartAdmin errors', @description=N'Checks to make sure the database is using checksum.', @help_text=N'', @help_link=N'', @schedule_uid=N'5ec1b5b9-d05c-4d18-8c96-612ba32f1c37', @execution_mode=4, @is_enabled=True, @policy_id=@policy_id OUTPUT, @root_condition_name=N'', @object_set=N'PageVerfiy Checksum_ObjectSet'
+Declare @policy_id int   --- execution mode means what....and schedule gone
+EXEC msdb.dbo.sp_syspolicy_add_policy @name=N'PageVerfiy Checksum', @condition_name=N'CheckSum', @policy_category=N'SmartAdmin errors', @description=N'Checks to make sure the database is using checksum.', @help_text=N'', @help_link=N'',  @execution_mode=1, @is_enabled=True, @policy_id=@policy_id OUTPUT, @root_condition_name=N'', @object_set=N'PageVerfiy Checksum_ObjectSet'
 Select @policy_id
 
 
@@ -892,24 +890,12 @@ EXEC msdb.dbo.sp_syspolicy_add_target_set_level @target_set_id=@target_set_id, @
 GO
 
 Declare @policy_id int
-EXEC msdb.dbo.sp_syspolicy_add_policy @name=N'Recent Log Backups', @condition_name=N'Last Log Backups', @policy_category=N'Maintenance Plans', @description=N'', @help_text=N'', @help_link=N'', @schedule_uid=N'2d7ffccd-f273-4973-9df5-6e03b03219c2', @execution_mode=4, @is_enabled=True, @policy_id=@policy_id OUTPUT, @root_condition_name=N'', @object_set=N'Recent Log Backups_ObjectSet_1'
+EXEC msdb.dbo.sp_syspolicy_add_policy @name=N'Recent Log Backups', @condition_name=N'Last Log Backups', @policy_category=N'SmartAdmin errors', @description=N'', @help_text=N'', @help_link=N'', @execution_mode=1, @is_enabled=True, @policy_id=@policy_id OUTPUT, @root_condition_name=N'', @object_set=N'Recent Log Backups_ObjectSet_1'
 Select @policy_id
 
 
-GO
-
 
 GO
-
-Declare @policy_id int
-EXEC msdb.dbo.sp_syspolicy_add_policy @name=N'Check Backup Completion', @condition_name=N'Successful Backups', @policy_category=N'Maintenance Plans', @description=N'Or Is this it?', @help_text=N'Is this the message', @help_link=N'', @schedule_uid=N'b588e62f-165b-4b17-ad82-494d180ecc91', @execution_mode=4, @is_enabled=True, @policy_id=@policy_id OUTPUT, @root_condition_name=N'', @object_set=N'Check Backup Completion_ObjectSet'
-Select @policy_id
-
-
-GO
-
-
-
 
 
 --- not in checklist, potentials to add
