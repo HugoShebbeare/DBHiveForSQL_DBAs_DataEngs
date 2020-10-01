@@ -1,4 +1,4 @@
---- latest policies, for Rona, Oct 2020
+--- latest policies, Oct 2020
 Declare @condition_id int
 EXEC msdb.dbo.sp_syspolicy_add_condition @name=N'64-bit Affinity Mask Overlapped', @description=N'Confirms that the same CPUs are not enabled with both the affinity mask option and the affinity I/O mask option, which can slow performance.', @facet=N'IServerPerformanceFacet', @expression=N'
                         <Operator>
