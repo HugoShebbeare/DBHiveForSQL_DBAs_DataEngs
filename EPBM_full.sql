@@ -1,4 +1,68 @@
 --- latest policies, Oct 2020
+/*-- add missing categories
+Microsoft Off by Default: Surface Area Configuration
+Microsoft Best Practices: Windows Log File
+Microsoft Best Practices: Server Configuration
+Microsoft Best Practices: Security
+Microsoft Best Practices: Performance
+Microsoft Best Practices: Maintenance
+Microsoft Best Practices: Database Design
+Microsoft Best Practices: Database Configurations
+Microsoft Best Practices: Audit
+Lowes Policies - Best Practices
+Lowes Policies - Backups
+*/
+USE msdb;  
+GO  
+EXEC dbo.sp_syspolicy_add_policy_category_subscription @target_type = N'database'  
+, @target_object = N'master'  
+, @policy_category = N'Lowes Policies - Backups';  
+GO  
+EXEC dbo.sp_syspolicy_add_policy_category_subscription @target_type = N'database'  
+, @target_object = N'master'  
+, @policy_category = N'Lowes Policies - Best Practices';  
+GO  
+EXEC dbo.sp_syspolicy_add_policy_category_subscription @target_type = N'database'  
+, @target_object = N'master'  
+, @policy_category = N'Microsoft Best Practices: Audit';  
+GO  
+EXEC dbo.sp_syspolicy_add_policy_category_subscription @target_type = N'database'  
+, @target_object = N'master'  
+, @policy_category = N'Microsoft Off by Default: Surface Area Configuration';  
+GO  
+EXEC dbo.sp_syspolicy_add_policy_category_subscription @target_type = N'database'  
+, @target_object = N'master'  
+, @policy_category = N'Microsoft Best Practices: Windows Log File';  
+GO  
+EXEC dbo.sp_syspolicy_add_policy_category_subscription @target_type = N'database'  
+, @target_object = N'master'  
+, @policy_category = N'Microsoft Best Practices: Server Configuration';  
+GO  
+EXEC dbo.sp_syspolicy_add_policy_category_subscription @target_type = N'database'  
+, @target_object = N'master'  
+, @policy_category = N'Microsoft Best Practices: Security';  
+GO  
+EXEC dbo.sp_syspolicy_add_policy_category_subscription @target_type = N'database'  
+, @target_object = N'master'  
+, @policy_category = N'Microsoft Best Practices: Performance';  
+GO  
+EXEC dbo.sp_syspolicy_add_policy_category_subscription @target_type = N'database'  
+, @target_object = N'master'  
+, @policy_category = N'Microsoft Best Practices: Maintenance';  
+GO  
+EXEC dbo.sp_syspolicy_add_policy_category_subscription @target_type = N'database'  
+, @target_object = N'master'  
+, @policy_category = N'Microsoft Best Practices: Database Design';  
+
+GO  
+EXEC dbo.sp_syspolicy_add_policy_category_subscription @target_type = N'database'  
+, @target_object = N'master'  
+, @policy_category = N'Microsoft Best Practices: Database Configurations';  
+
+	-- validate that the categories are there by right click on policies, Manage Categories,
+	--otherwise add them when policies fail to be added 
+	
+--- CONDITIONS NTXT
 Declare @condition_id int
 EXEC msdb.dbo.sp_syspolicy_add_condition @name=N'64-bit Affinity Mask Overlapped', @description=N'Confirms that the same CPUs are not enabled with both the affinity mask option and the affinity I/O mask option, which can slow performance.', @facet=N'IServerPerformanceFacet', @expression=N'
                         <Operator>
