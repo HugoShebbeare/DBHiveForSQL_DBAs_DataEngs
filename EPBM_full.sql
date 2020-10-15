@@ -9,18 +9,8 @@ Microsoft Best Practices: Maintenance
 Microsoft Best Practices: Database Design
 Microsoft Best Practices: Database Configurations
 Microsoft Best Practices: Audit
-Lowes Policies - Best Practices
-Lowes Policies - Backups
 */
 USE msdb;  
-GO  
-EXEC dbo.sp_syspolicy_add_policy_category_subscription @target_type = N'database'  
-, @target_object = N'master'  
-, @policy_category = N'Lowes Policies - Backups';  
-GO  
-EXEC dbo.sp_syspolicy_add_policy_category_subscription @target_type = N'database'  
-, @target_object = N'master'  
-, @policy_category = N'Lowes Policies - Best Practices';  
 GO  
 EXEC dbo.sp_syspolicy_add_policy_category_subscription @target_type = N'database'  
 , @target_object = N'master'  
@@ -1939,7 +1929,7 @@ EXEC msdb.dbo.sp_syspolicy_add_condition @name=N'Online User Database', @descrip
         <Constant>
           <TypeClass>String</TypeClass>
           <ObjType>System.String</ObjType>
-          <Value>lowesdba</Value>
+          <Value>dba</Value>
         </Constant>
       </Operator>
     </Operator>
@@ -3554,7 +3544,7 @@ IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 END
 
 DECLARE @jobId BINARY(16)
-EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'syspolicy_check_schedule_RonaLowes', 
+EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'syspolicy_check_schedule', 
 		@enabled=1, 
 		@notify_level_eventlog=0, 
 		@notify_level_email=0, 
@@ -3594,7 +3584,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Evaluate
 		@retry_attempts=0, 
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'PowerShell', 
-		@command=N'dir SQLSERVER:\SQLPolicy\W90990Ajuste\default\Policies | where { $_.ScheduleUid -eq "InputNewScheduleID" } |  where { $_.Enabled -eq 1} | where {$_.AutomatedPolicyEvaluationMode -eq 4} | Invoke-PolicyEvaluation -AdHocPolicyEvaluationMode 2 -TargetServerName W90990ADJUST', 
+		@command=N'dir SQLSERVER:\SQLPolicy\SEVERNAME0Ajuste\default\Policies | where { $_.ScheduleUid -eq "InputNewScheduleID" } |  where { $_.Enabled -eq 1} | where {$_.AutomatedPolicyEvaluationMode -eq 4} | Invoke-PolicyEvaluation -AdHocPolicyEvaluationMode 2 -TargetServerName W90990ADJUST', 
 		@flags=0
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_update_job @job_id = @jobId, @start_step_id = 1
@@ -3625,20 +3615,9 @@ GO
 
 
 ---- REPLACE SCHEDULE ID, or all will fail (mny set to 0000000 so better :
--- add missing categories
-
-EXEC msdb.dbo.sp_syspolicy_update_target_set @target_set_id=49, @enabled=True
-EXEC msdb.dbo.sp_syspolicy_update_target_set_level @target_set_id=49, @type_skeleton=N'Server/Database/LogFile', @condition_name=N''
-EXEC msdb.dbo.sp_syspolicy_update_target_set_level @target_set_id=49, @type_skeleton=N'Server/Database', @condition_name=N''
-
-
-GO
-
-EXEC msdb.dbo.sp_syspolicy_update_policy @policy_id=49, @execution_mode=4, @policy_category=N'Microsoft Best Practices: Performance', @schedule_uid=N'3b313f43-9db9-43d4-a5b2-767be352a7d3'
 
 GO  
--- validate that the categories are ther, otherwise add them when policies fail to be added (conditions okay, 
--- just the last sp_syspolicy_add_policy might fail, and can be easily re-executed once the policy is added
+--- add policies
 Declare @object_set_id int
 EXEC msdb.dbo.sp_syspolicy_add_object_set @object_set_name=N'XP_CmdShell Check_ObjectSet', @facet=N'IServerSecurityFacet', @object_set_id=@object_set_id OUTPUT
 Select @object_set_id
