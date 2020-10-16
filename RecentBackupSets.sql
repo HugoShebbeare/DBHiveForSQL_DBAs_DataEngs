@@ -1,4 +1,7 @@
-select @@servername [Server\Instance], a.DbName, a.recovery_model_desc, a.[isAG], b.nbr as NbFull, c.nbr as NbDiff, d.nbr as NbLogs, convert(varchar(10),getdate(),120) SnapDate
+
+--- simple look with AG related dbs
+
+select @@servername [Server\Instance], a.DbName, a.recovery_model_desc, a.[isAG], b.nbr as NbFull, c.nbr as NbDiff, d.nbr as NbLogs, convert(varchar(16),getdate(),120) SnapDate
 
 from 
 
@@ -51,3 +54,14 @@ from
              and type = 'L' --Logs
 
      GROUP BY [database_name]) d on a.DbName = d.DbName 
+
+
+	 select top 20 [User_name] as WhoDidTheBackup, [Type] as backuptype, [database_name],  [name] AS 'DbName', [server_name], backup_finish_date
+	 from msdb.dbo.backupset
+	 where type='l'
+	 order by backup_finish_date desc
+
+	 	 select top 20 [User_name] as WhoDidTheBackup, [Type] as backuptype, [database_name],  [name] AS 'DbName', [server_name], backup_finish_date
+	 from msdb.dbo.backupset
+	where type!='l'
+	 order by backup_finish_date desc
