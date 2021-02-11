@@ -82,3 +82,15 @@ FROM (SELECT LEFT(UPPER(mf.physical_name), 2) AS Drive, SUM(num_of_reads) AS num
 ORDER BY [Overall Latency] OPTION (RECOMPILE);
 go
 set IDENTITY_INSERT [dbo].[DiskLatency] OFF
+
+
+---- just files  https://www.mssqltips.com/sqlservertip/6125/disk-latency-for-sql-server-database-and-transaction-log-files/
+   SELECT TOP (10) DB_NAME (a.database_id) AS dbname,
+      a.io_stall / NULLIF (a.num_of_reads + a.num_of_writes, 0) AS average_tot_latency,
+      Round ((a.size_on_disk_bytes / square (1024.0)), 1) AS size_mb,
+      b.physical_name AS [fileName]
+   FROM sys.dm_io_virtual_file_stats(NULL, NULL) AS a,
+      sys.master_files AS b
+   WHERE a.database_id = b.database_id
+      AND a.FILE_ID = b.FILE_ID
+   ORDER BY average_tot_latency DESC
