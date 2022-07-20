@@ -222,57 +222,9 @@ AS (SELECT [job_id] = job.job_id,
                                      CAST(LEFT(RIGHT(next_run_time, 6), 2) + ':' + LEFT(RIGHT(next_run_time, 4), 2)
                                           + ':' + RIGHT(next_run_time, 2) AS CHAR(8))
                              END,
-           [Max_Duration] = CASE LEN(max_run_duration)
-                                WHEN 1 THEN
-                                    CAST('00:00:0' + CAST(max_run_duration AS CHAR) AS CHAR(8))
-                                WHEN 2 THEN
-                                    CAST('00:00:' + CAST(max_run_duration AS CHAR) AS CHAR(8))
-                                WHEN 3 THEN
-                                    CAST('00:0' + LEFT(RIGHT(max_run_duration, 3), 1) + ':'
-                                         + RIGHT(max_run_duration, 2) AS CHAR(8))
-                                WHEN 4 THEN
-                                    CAST('00:' + LEFT(RIGHT(max_run_duration, 4), 2) + ':' + RIGHT(max_run_duration, 2) AS CHAR(8))
-                                WHEN 5 THEN
-                                    CAST('0' + LEFT(RIGHT(max_run_duration, 5), 1) + ':'
-                                         + LEFT(RIGHT(max_run_duration, 4), 2) + ':' + RIGHT(max_run_duration, 2) AS CHAR(8))
-                                WHEN 6 THEN
-                                    CAST(LEFT(RIGHT(max_run_duration, 6), 2) + ':'
-                                         + LEFT(RIGHT(max_run_duration, 4), 2) + ':' + RIGHT(max_run_duration, 2) AS CHAR(8))
-                            END,
-           [Min_Duration] = CASE LEN(min_run_duration)
-                                WHEN 1 THEN
-                                    CAST('00:00:0' + CAST(min_run_duration AS CHAR) AS CHAR(8))
-                                WHEN 2 THEN
-                                    CAST('00:00:' + CAST(min_run_duration AS CHAR) AS CHAR(8))
-                                WHEN 3 THEN
-                                    CAST('00:0' + LEFT(RIGHT(min_run_duration, 3), 1) + ':'
-                                         + RIGHT(min_run_duration, 2) AS CHAR(8))
-                                WHEN 4 THEN
-                                    CAST('00:' + LEFT(RIGHT(min_run_duration, 4), 2) + ':' + RIGHT(min_run_duration, 2) AS CHAR(8))
-                                WHEN 5 THEN
-                                    CAST('0' + LEFT(RIGHT(min_run_duration, 5), 1) + ':'
-                                         + LEFT(RIGHT(min_run_duration, 4), 2) + ':' + RIGHT(min_run_duration, 2) AS CHAR(8))
-                                WHEN 6 THEN
-                                    CAST(LEFT(RIGHT(min_run_duration, 6), 2) + ':'
-                                         + LEFT(RIGHT(min_run_duration, 4), 2) + ':' + RIGHT(min_run_duration, 2) AS CHAR(8))
-                            END,
-           [Avg_Duration] = CASE LEN(avg_run_duration)
-                                WHEN 1 THEN
-                                    CAST('00:00:0' + CAST(avg_run_duration AS CHAR) AS CHAR(8))
-                                WHEN 2 THEN
-                                    CAST('00:00:' + CAST(avg_run_duration AS CHAR) AS CHAR(8))
-                                WHEN 3 THEN
-                                    CAST('00:0' + LEFT(RIGHT(avg_run_duration, 3), 1) + ':'
-                                         + RIGHT(avg_run_duration, 2) AS CHAR(8))
-                                WHEN 4 THEN
-                                    CAST('00:' + LEFT(RIGHT(avg_run_duration, 4), 2) + ':' + RIGHT(avg_run_duration, 2) AS CHAR(8))
-                                WHEN 5 THEN
-                                    CAST('0' + LEFT(RIGHT(avg_run_duration, 5), 1) + ':'
-                                         + LEFT(RIGHT(avg_run_duration, 4), 2) + ':' + RIGHT(avg_run_duration, 2) AS CHAR(8))
-                                WHEN 6 THEN
-                                    CAST(LEFT(RIGHT(avg_run_duration, 6), 2) + ':'
-                                         + LEFT(RIGHT(avg_run_duration, 4), 2) + ':' + RIGHT(avg_run_duration, 2) AS CHAR(8))
-                            END,
+           [Max_Duration]=Max_Run_Duration,
+          [Min_Duration] =min_run_duration,
+           [Avg_Duration]=Avg_Run_Duration,
            [Subday_Frequency] = CASE (sched.freq_subday_interval)
                                     WHEN 0 THEN
                                         'Once'
