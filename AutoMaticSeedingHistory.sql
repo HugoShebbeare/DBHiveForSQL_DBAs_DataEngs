@@ -2,7 +2,13 @@
 select * 
 from sys.dm_hadr_automatic_seeding
 order by start_time desc
---  DBCC TRACESTATUS(9567)
+--  DBCC TRACESTATUS(9567)  
+-- for replicas on slow connection
+/*
+Dbcc traceon(9567)
+--	Enables compression of the data stream for Always On Availability Groups during automatic seeding. Compression can significantly reduce the transfer time during automatic seeding, and increases the load on the processor.
+*/
+
 select * 
 from sys.dm_hadr_physical_seeding_stats
 order by start_time_utc desc, local_database_name
