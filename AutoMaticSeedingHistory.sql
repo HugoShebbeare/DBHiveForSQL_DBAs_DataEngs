@@ -13,6 +13,13 @@ select *
 from sys.dm_hadr_physical_seeding_stats
 order by start_time_utc desc, local_database_name
 
+---- sagar mulukanoori's better version :)
+select local_database_name
+, remote_machine_name,role_desc ,internal_state_desc 
+,transfer_rate_bytes_per_second/1024/1024 as transfer_rate_MB_per_second ,transferred_size_bytes/1024/1024/1024 as transferred_size_GB
+,database_size_bytes/1024/1024/1024 as Database_Size_GB,
+is_compression_enabled     from sys.dm_hadr_physical_seeding_stats
+
  SELECT start_time, ag.name, db.database_name, current_state, performed_seeding, failure_state, failure_state_desc
  FROM sys.dm_hadr_automatic_seeding autos 
     JOIN sys.availability_databases_cluster db ON autos.ag_db_id = db.group_database_id
