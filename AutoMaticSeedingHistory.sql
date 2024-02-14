@@ -32,3 +32,14 @@ SELECT r.command, r.wait_type, r.wait_resource, DB_NAME(tl.resource_database_id)
 FROM sys.dm_tran_locks as tl
 join sys.dm_exec_requests as r on tl.request_session_id = r.session_id
 --WHERE tl.request_session_id = <concern
+
+
+--- replica states
+SELECT r.replica_server_name, r.endpoint_url,
+rs.connected_state_desc, rs.role_desc, rs.operational_state_desc,
+rs.recovery_health_desc,rs.synchronization_health_desc,
+r.availability_mode_desc, r.failover_mode_desc
+FROM sys.dm_hadr_availability_replica_states rs 
+INNER JOIN sys.availability_replicas r
+ON rs.replica_id=r.replica_id
+ORDER BY r.replica_server_name    
