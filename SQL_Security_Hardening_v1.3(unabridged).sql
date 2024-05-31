@@ -5,11 +5,11 @@
 /*  By Frank Xue, Frank Yoon, Hugo Shebbeare, Stacey V Murphy                                         */
 /*																    */
 /*  Version 1.1		-- August 14, 2015										*/
-/*  Version	1.15	-- September 1, 2015. Remove ml\Entegra and gcosi\dmspbdb					*/
+/*  Version	1.15	-- September 1, 2015. Remove ml\Entegra and \dmspbdb					*/
 /*                                                                                                  */
 /*  Version	1.20	-- Remove CA\SQLSrvrca		October 15, 2015                                    */
 /*                                                                                                  */
-/*  Version 1.21  -- Danny M. Replace Public to Revoke Public. And drop "gcosi\dmssqlsrvr"          */
+/*  Version 1.21  -- Danny M. Replace Public to Revoke Public. And drop "\dmssqlsrvr"          */
 /*  Version 1.26  -- Hugo S./Stacey V M. DENY CONTROL to REVOKE Control in sys dbs. SQL 2014 Ready  */
 /*	------------------------------ Part I:  Server Level --------------------------------------	*/
  
@@ -46,8 +46,8 @@ PRINT @MinorSec
 
 IF EXISTS (SELECT * FROM sys.server_principals WHERE name= 'sa')
 	BEGIN
-		ALTER LOGIN [sa] WITH NAME = [Watermelon] -- Rename sa into Watermelon
-		ALTER SERVER ROLE [sysadmin] DROP MEMBER [Watermelon]
+		ALTER LOGIN [sa] WITH NAME = [SomeSecretName] -- Rename sa to SomeSharedSecretName in a pwd vault
+		ALTER SERVER ROLE [sysadmin] DROP MEMBER [SomeSccretSAName]
 		PRINT 'Login "sa" Is Renamed and Disabled AND REMOVED FROM SYSADMIN'  -- added sysadmin membership removal Feb '16
 		PRINT ''
 	END
@@ -121,20 +121,20 @@ PRINT 'SERVER ROLE Monitoring Created.'
 
 -- 2.2 Create Logins as Members of Role "Monitoring" 
 
-IF @SYSType = 'PROD' AND NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'gcosi\DMSStatsCollector')
-	CREATE LOGIN [gcosi\DMSStatsCollector] FROM WINDOWS WITH DEFAULT_DATABASE=[master]
-IF @SYSType <> 'PROD' AND NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'gcosi\DMSnpStatsCollector')
-	CREATE LOGIN [gcosi\DMSnpStatsCollector] FROM WINDOWS WITH DEFAULT_DATABASE=[master]
-IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'gcosi\Patrol')
-	CREATE LOGIN [gcosi\Patrol] FROM WINDOWS WITH DEFAULT_DATABASE=[master]
-IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'gcosi\probe')
-	CREATE LOGIN [gcosi\probe] FROM WINDOWS WITH DEFAULT_DATABASE=[master]
+IF @SYSType = 'PROD' AND NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'domain\StatsCollector')
+	CREATE LOGIN [domain\DMSStatsCollector] FROM WINDOWS WITH DEFAULT_DATABASE=[master]
+IF @SYSType <> 'PROD' AND NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'domain\DMSnpStatsCollector')
+	CREATE LOGIN [\DMSnpStatsCollector] FROM WINDOWS WITH DEFAULT_DATABASE=[master]
+IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = '\Patrol')
+	CREATE LOGIN [\Patrol] FROM WINDOWS WITH DEFAULT_DATABASE=[master]
+IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = '\probe')
+	CREATE LOGIN [\probe] FROM WINDOWS WITH DEFAULT_DATABASE=[master]
 
 PRINT 'Logins are created'
 
 -- 2.3 Add the Logins to the Server Role "Monitoring"
-ALTER SERVER ROLE Monitoring ADD MEMBER [gcosi\Patrol]
-ALTER SERVER ROLE Monitoring ADD MEMBER [gcosi\Probe]
+ALTER SERVER ROLE Monitoring ADD MEMBER [\Patrol]
+ALTER SERVER ROLE Monitoring ADD MEMBER [\Probe]
 -- any our monitoring account service
 
 PRINT 'Five Logins Added to the Server Role "Monitoring"'
@@ -180,9 +180,9 @@ SELECT @CMD1 = @CMD1 + 'ALTER SERVER ROLE [sysadmin] DROP MEMBER [' + l.name + '
 	FROM sys.server_principals l JOIN sys.server_role_members srm on l.principal_id=srm.member_principal_id 
 		JOIN sys.server_principals r on r.principal_id=srm.role_principal_id
 		WHERE r.name = 'sysadmin' AND l.name in 
-				('gcosi\Patrol','gcosi\Probe',
-						--'ca\sqlsrvrca',  removed on Oct. 15, 2015; 'gcosi\DMSSQLSrvr' removed on Oct. 29,2015,
-				'gcosi\DMSSQLbkp','gcosi\DMSStatsCollector','gcosi\DMSnpStatsCollector'
+				('\Patrol','\Probe',
+						--'ca\sqlsrvrca',  removed on Oct. 15, 2015; '\DMSSQLSrvr' removed on Oct. 29,2015,
+				'\DMSSQLbkp','\DMSStatsCollector','\DMSnpStatsCollector'
 				)
 
 EXEC (@CMD1)
@@ -219,7 +219,7 @@ DENY CREATE ENDPOINT TO [Monitoring];
 --					WHERE l.type in ('U','G') and 
 --						l.name not like '%sqsv%' 
 --						and s.name = 'sysadmin' and 
---						l.name not in ('NT SERVICE\Winmgmt','NT SERVICE\SQLWriter','Watermelon','distributor_admin'))
+--						l.name not in ('NT SERVICE\Winmgmt','NT SERVICE\SQLWriter','SomeSecret','distributor_admin'))
 ---- have an explicit deny on the instance-specific service accou
 
 DENY Alter ANY Server Audit to [Monitoring]
@@ -248,19 +248,19 @@ PRINT @MinorSec
 
 -- 1.1 Create Users (patrol, probe, stats)
 
-IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'gcosi\patrol' )
-	CREATE USER [gcosi\patrol] FOR LOGIN [gcosi\patrol]
-IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'gcosi\patrol' )
-	CREATE USER [gcosi\patrol] FOR LOGIN [gcosi\probe]
-IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'gcosi\DMSnpStatsCollector' ) AND @SYSType <> 'PROD'
+IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '\patrol' )
+	CREATE USER [\patrol] FOR LOGIN [\patrol]
+IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '\patrol' )
+	CREATE USER [\patrol] FOR LOGIN [\probe]
+IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '\DMSnpStatsCollector' ) AND @SYSType <> 'PROD'
 	BEGIN	
-		CREATE USER [gcosi\DMSnpStatsCollector] FOR LOGIN [gcosi\DMSnpStatsCollector]
-		DENY CONTROL ON SCHEMA::[dbo] TO [gcosi\DMSnpStatsCollector]
+		CREATE USER [\DMSnpStatsCollector] FOR LOGIN [\DMSnpStatsCollector]
+		DENY CONTROL ON SCHEMA::[dbo] TO [\DMSnpStatsCollector]
 	END
-IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'gcosi\DMSStatsCollector' ) AND @SYSType = 'PROD'
+IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '\DMSStatsCollector' ) AND @SYSType = 'PROD'
 	BEGIN
-		CREATE USER [gcosi\DMSStatsCollector] FOR LOGIN [gcosi\DMSStatsCollector]
-		DENY CONTROL ON SCHEMA::[dbo] TO [gcosi\DMSStatsCollector]
+		CREATE USER [\DMSStatsCollector] FOR LOGIN [\DMSStatsCollector]
+		DENY CONTROL ON SCHEMA::[dbo] TO [\DMSStatsCollector]
 	END
 --IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'CA\sqlsrvrca' )  -- Removed on Oct. 15, 2015
 	--CREATE USER [CA\sqlsrvrca] FOR LOGIN [CA\sqlsrvrca]
@@ -291,12 +291,12 @@ PRINT 'DB Role Monitoring Created'
 
 -- 1.3 Add Users to the DB Role 
 
-ALTER ROLE [Monitoring] ADD MEMBER [gcosi\patrol]
+ALTER ROLE [Monitoring] ADD MEMBER [\patrol]
 IF @SYSType <> 'PROD'--
-	ALTER ROLE [Monitoring] ADD MEMBER [gcosi\DMSnpStatsCollector]
+	ALTER ROLE [Monitoring] ADD MEMBER [\DMSnpStatsCollector]
 ELSE 
-	ALTER ROLE [Monitoring] ADD MEMBER [gcosi\DMSStatsCollector]
-ALTER ROLE [Monitoring] ADD MEMBER [gcosi\probe]
+	ALTER ROLE [Monitoring] ADD MEMBER [\DMSStatsCollector]
+ALTER ROLE [Monitoring] ADD MEMBER [\probe]
 
 PRINT 'DB Users Added to the DB Role Monitoring in Model DB'
 PRINT ''
@@ -313,44 +313,44 @@ USE master
 PRINT 'II-2: Manage Monitoring Accesses to the Master Database'
 PRINT @MinorSec
 
-IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'gcosi\patrol' )
-	CREATE USER [gcosi\patrol] FOR LOGIN [gcosi\patrol]
-IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'gcosi\DMSnpStatsCollector' ) AND @SYSType <> 'PROD'
+IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '\patrol' )
+	CREATE USER [\patrol] FOR LOGIN [\patrol]
+IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '\DMSnpStatsCollector' ) AND @SYSType <> 'PROD'
 	BEGIN	-- clean up
-		CREATE USER [gcosi\DMSnpStatsCollector] FOR LOGIN [gcosi\DMSnpStatsCollector]
-		REVOKE CONTROL ON SCHEMA::[dbo] TO [gcosi\DMSnpStatsCollector]
+		CREATE USER [\DMSnpStatsCollector] FOR LOGIN [\DMSnpStatsCollector]
+		REVOKE CONTROL ON SCHEMA::[dbo] TO [\DMSnpStatsCollector]
 	END
-IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'gcosi\DMSStatsCollector' ) AND @SYSType = 'PROD'
+IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '\DMSStatsCollector' ) AND @SYSType = 'PROD'
 	BEGIN
-		CREATE USER [gcosi\DMSStatsCollector] FOR LOGIN [gcosi\DMSStatsCollector]
-		REVOKE CONTROL ON SCHEMA::[dbo] TO [gcosi\DMSStatsCollector]
+		CREATE USER [\DMSStatsCollector] FOR LOGIN [\DMSStatsCollector]
+		REVOKE CONTROL ON SCHEMA::[dbo] TO [\DMSStatsCollector]
 	END
-IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'gcosi\probe' )
-	CREATE USER [gcosi\probe] FOR LOGIN [gcosi\probe]
+IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '\probe' )
+	CREATE USER [\probe] FOR LOGIN [\probe]
 --IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'CA\sqlsrvrca' )  -- Removed on Oct. 15, 2015
 --	CREATE USER [CA\sqlsrvrca] FOR LOGIN [CA\sqlsrvrca]
---IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'gcosi\dmssqlsrvr' )  -- Removed on Oct. 29, 2015
---	CREATE USER [gcosi\dmssqlsrvr] FOR LOGIN [gcosi\dmssqlsrvr]
+--IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '\dmssqlsrvr' )  -- Removed on Oct. 29, 2015
+--	CREATE USER [\dmssqlsrvr] FOR LOGIN [\dmssqlsrvr]
 
 --ALTER ROLE db_datareader ADD MEMBER [CA\sqlsrvrca]	-- Removed on Oct. 15, 2015
 IF @SYSType = 'PROD'
 	BEGIN
-		GRANT select, view definition, execute, references on schema::dbo to [gcosi\DMSStatsCollector]
-		GRANT select, view definition, execute, references on schema::sys to [gcosi\DMSStatsCollector]
+		GRANT select, view definition, execute, references on schema::dbo to [\DMSStatsCollector]
+		GRANT select, view definition, execute, references on schema::sys to [\DMSStatsCollector]
 	END
 ELSE
 	BEGIN
-		ALTER ROLE db_datareader ADD MEMBER [gcosi\DMSnpStatsCollector] -- Only Non_Production
-		GRANT select, view definition, execute, references on schema::dbo to [gcosi\DMSnpStatsCollector]
-		GRANT select, view definition, execute, references on schema::sys to [gcosi\DMSnpStatsCollector]
+		ALTER ROLE db_datareader ADD MEMBER [\DMSnpStatsCollector] -- Only Non_Production
+		GRANT select, view definition, execute, references on schema::dbo to [\DMSnpStatsCollector]
+		GRANT select, view definition, execute, references on schema::sys to [\DMSnpStatsCollector]
 	END
 
 PRINT 'DB Users Created and Added to DB Role Monitoring for the Master Database' 
 
 -- 2.3 Grant Permissions to Some Users
-GRANT select, view definition, execute on schema::dbo to  [gcosi\patrol],[gcosi\probe]
+GRANT select, view definition, execute on schema::dbo to  [\patrol],[\probe]
 				-- [CA\sqlsrvrca],  -- Removed on October 15, 2015
-GRANT select, view definition, execute on schema::sys to  [gcosi\patrol],[gcosi\probe]
+GRANT select, view definition, execute on schema::sys to  [\patrol],[\probe]
 				--[CA\sqlsrvrca], -- Removed on October 15, 2015
 
 --DECLARE @SYSType VARCHAR (10)												
@@ -389,20 +389,20 @@ PRINT @MinorSec
 
 USE msdb -- MSDB
  
-IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'gcosi\patrol' )
-	CREATE USER [gcosi\patrol] FOR LOGIN [gcosi\patrol]
-IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'gcosi\DMSnpStatsCollector' ) AND @SYSType <> 'PROD'
+IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '\patrol' )
+	CREATE USER [\patrol] FOR LOGIN [\patrol]
+IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '\DMSnpStatsCollector' ) AND @SYSType <> 'PROD'
 	BEGIN	
-		CREATE USER [gcosi\DMSnpStatsCollector] FOR LOGIN [gcosi\DMSnpStatsCollector]
-		Revoke CONTROL ON SCHEMA::[dbo] TO [gcosi\DMSnpStatsCollector]
+		CREATE USER [\DMSnpStatsCollector] FOR LOGIN [\DMSnpStatsCollector]
+		Revoke CONTROL ON SCHEMA::[dbo] TO [\DMSnpStatsCollector]
 	END
-IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'gcosi\DMSStatsCollector' ) AND @SYSType = 'PROD'
+IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '\DMSStatsCollector' ) AND @SYSType = 'PROD'
 	BEGIN
-		CREATE USER [gcosi\DMSStatsCollector] FOR LOGIN [gcosi\DMSStatsCollector]
-		Revoke CONTROL ON SCHEMA::[dbo] TO [gcosi\DMSStatsCollector]
+		CREATE USER [\DMSStatsCollector] FOR LOGIN [\DMSStatsCollector]
+		Revoke CONTROL ON SCHEMA::[dbo] TO [\DMSStatsCollector]
 	END
-IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'gcosi\probe' )
-	CREATE USER [gcosi\probe] FOR LOGIN [gcosi\probe]
+IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '\probe' )
+	CREATE USER [\probe] FOR LOGIN [\probe]
 --IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'CA\sqlsrvrca' )  -- Removed on October 15, 2015
 --	CREATE USER [CA\sqlsrvrca] FOR LOGIN [CA\sqlsrvrca]
 
@@ -428,31 +428,31 @@ GRANT select, view definition, execute, references on schema::dbo to [Monitoring
 GRANT select, view definition, execute, references on schema::sys to [Monitoring]
 DENY insert, update, delete, alter TO [Monitoring] 
 
-ALTER ROLE SQLAgentReaderRole ADD MEMBER [gcosi\Patrol]
-ALTER ROLE db_backupoperator ADD MEMBER [gcosi\Patrol]
+ALTER ROLE SQLAgentReaderRole ADD MEMBER [\Patrol]
+ALTER ROLE db_backupoperator ADD MEMBER [\Patrol]
 
 PRINT 'DB Monitoring Users Created in msdb Database'
 
 GRANT select, view definition, execute, references on schema::dbo to  
-		[gcosi\patrol], [gcosi\probe]  --, [CA\sqlsrvrca]  -- Removed on October 15, 2015
+		[\patrol], [\probe]  --, [CA\sqlsrvrca]  -- Removed on October 15, 2015
 GRANT select, view definition, execute, references on schema::sys to  
-		[gcosi\patrol], [gcosi\probe]  -- , [CA\sqlsrvrca]
+		[\patrol], [\probe]  -- , [CA\sqlsrvrca]
 
 -- 3.2 Add More Users to Some Fixed Database Roles in msdb
 
 IF @SYSType = 'PROD'
 	BEGIN 
-		ALTER ROLE SQLAgentReaderRole ADD MEMBER [gcosi\DMSStatsCollector]  -- For Production
-		ALTER ROLE db_backupoperator ADD MEMBER [gcosi\DMSStatsCollector]	-- For Production
-		GRANT select, view definition, execute, references on schema::dbo to [gcosi\DMSStatsCollector]
-		GRANT select, view definition, execute, references on schema::sys to [gcosi\DMSStatsCollector]
+		ALTER ROLE SQLAgentReaderRole ADD MEMBER [\DMSStatsCollector]  -- For Production
+		ALTER ROLE db_backupoperator ADD MEMBER [\DMSStatsCollector]	-- For Production
+		GRANT select, view definition, execute, references on schema::dbo to [\DMSStatsCollector]
+		GRANT select, view definition, execute, references on schema::sys to [\DMSStatsCollector]
 	END
 ELSE
 	BEGIN
-		ALTER ROLE SQLAgentReaderRole ADD MEMBER [gcosi\DMSnpStatsCollector] -- For Non-Prod
-		ALTER ROLE db_backupoperator ADD MEMBER [gcosi\DMSnpStatsCollector] -- For Non-Prod
-		GRANT select, view definition, execute, references on schema::dbo to [gcosi\DMSnpStatsCollector]
-		GRANT select, view definition, execute, references on schema::sys to [gcosi\DMSnpStatsCollector]
+		ALTER ROLE SQLAgentReaderRole ADD MEMBER [\DMSnpStatsCollector] -- For Non-Prod
+		ALTER ROLE db_backupoperator ADD MEMBER [\DMSnpStatsCollector] -- For Non-Prod
+		GRANT select, view definition, execute, references on schema::dbo to [\DMSnpStatsCollector]
+		GRANT select, view definition, execute, references on schema::sys to [\DMSnpStatsCollector]
 	END
  PRINT 'DB Users Added to Fixed DB Roles and Granted Schema Permissions in MSDB'
  PRINT ''
@@ -496,21 +496,21 @@ PRINT @MinorSec
 USE master
 
 -- Removed originally, but readded in Feb, not a bad thing to reduce if there
-IF EXISTS (SELECT * FROM sys.server_principals WHERE name = 'gcosi\dmssqlsrvr')  
+IF EXISTS (SELECT * FROM sys.server_principals WHERE name = '\dmssqlsrvr')  
 	BEGIN
-		DENY ALTER ANY USER to [gcosi\dmssqlsrvr]
-		REVOKE CONTROL to [gcosi\dmssqlsrvr]
+		DENY ALTER ANY USER to [\dmssqlsrvr]
+		REVOKE CONTROL to [\dmssqlsrvr]
 	END
 -- the usual suspects for monitoring, just to be sure no control
-IF EXISTS (SELECT * FROM sys.server_principals WHERE name = 'gcosi\Patrol')
+IF EXISTS (SELECT * FROM sys.server_principals WHERE name = '\Patrol')
 	BEGIN
-		DENY ALTER ANY USER to [gcosi\Patrol]
-		REVOKE CONTROL to [gcosi\Patrol]
+		DENY ALTER ANY USER to [\Patrol]
+		REVOKE CONTROL to [\Patrol]
 	END
-IF EXISTS (SELECT * FROM sys.server_principals WHERE name = 'gcosi\probe')
+IF EXISTS (SELECT * FROM sys.server_principals WHERE name = '\probe')
 	BEGIN
-		DENY ALTER ANY USER to [gcosi\probe]
-		REVOKE CONTROL to [gcosi\probe]
+		DENY ALTER ANY USER to [\probe]
+		REVOKE CONTROL to [\probe]
 	END
 PRINT 'User Permission Retrictions Imposed'
 PRINT ''
@@ -557,12 +557,12 @@ REVOKE EXECUTE on xp_sprintf to [public]
 /*
 -- we would have to add explicit access to any of these extended stored procs in master, by group (major pain)
 -- add if Canadian server statement here (redundant for SU, since they are sysadmin, but as examples)
-grant EXECUTE on xp_getnetname to [gcosi\DMS_SQL_Can_su]
-grant EXECUTE on xp_dirtree to [gcosi\DMS_SQL_Can_su]
-grant EXECUTE on xp_msver to [gcosi\DMS_SQL_Can_su]
-grant EXECUTE on xp_fixeddrives to [gcosi\DMS_SQL_Can_su]
-grant EXECUTE on xp_sscanf to [gcosi\DMS_SQL_Can_su]
-grant EXECUTE on xp_sprintf to [gcosi\DMS_SQL_Can_su]
+grant EXECUTE on xp_getnetname to [\DMS_SQL_Can_su]
+grant EXECUTE on xp_dirtree to [\DMS_SQL_Can_su]
+grant EXECUTE on xp_msver to [\DMS_SQL_Can_su]
+grant EXECUTE on xp_fixeddrives to [\DMS_SQL_Can_su]
+grant EXECUTE on xp_sscanf to [\DMS_SQL_Can_su]
+grant EXECUTE on xp_sprintf to [\DMS_SQL_Can_su]
 
 -- registry and helptext, syscomments (users of SSMS, their groups need to be added or Properties of objects throw errors)
 grant EXECUTE on xp_instance_regread to [GroupName]
@@ -575,12 +575,12 @@ grant EXECUTE on sp_helptext to [GroupName]
 -- add if US server statement here
 /*
 -- offshore
-grant EXECUTE on xp_getnetname to [gcosi\DMS_SQL_ISC_su]
-grant EXECUTE on xp_dirtree to [gcosi\DMS_SQL_ISC_su]
-grant EXECUTE on xp_msver to [gcosi\DMS_SQL_ISC_su]
-grant EXECUTE on xp_fixeddrives to [gcosi\DMS_SQL_ISC_su]
-grant EXECUTE on xp_sscanf to [gcosi\DMS_SQL_ISC_su]
-grant EXECUTE on xp_sprintf to [gcosi\DMS_SQL_ISC_su]
+grant EXECUTE on xp_getnetname to [\DMS_SQL_ISC_su]
+grant EXECUTE on xp_dirtree to [\DMS_SQL_ISC_su]
+grant EXECUTE on xp_msver to [\DMS_SQL_ISC_su]
+grant EXECUTE on xp_fixeddrives to [\DMS_SQL_ISC_su]
+grant EXECUTE on xp_sscanf to [\DMS_SQL_ISC_su]
+grant EXECUTE on xp_sprintf to [\DMS_SQL_ISC_su]
 
 -- registry and helptext, syscomments (users of SSMS, their groups need to be added or Properties of objects throw errors)
 grant EXECUTE on xp_instance_regread to [GroupName]
@@ -590,12 +590,12 @@ grant EXECUTE on sp_helptext to [GroupName]
 grant EXECUTE on sp_helptext to [GroupName]
 
 -- US example (SU group redudant, just an example)
-grant EXECUTE on xp_getnetname to [gcosi\DMS_SQL_US_su]
-grant EXECUTE on xp_dirtree to [gcosi\DMS_SQL_US_su]
-grant EXECUTE on xp_msver to [gcosi\DMS_SQL_US_su]
-grant EXECUTE on xp_fixeddrives to [gcosi\DMS_SQL_US_su]
-grant EXECUTE on xp_sscanf to [gcosi\DMS_SQL_US_su]
-grant EXECUTE on xp_sprintf to [gcosi\DMS_SQL_US_su]
+grant EXECUTE on xp_getnetname to [\DMS_SQL_US_su]
+grant EXECUTE on xp_dirtree to [\DMS_SQL_US_su]
+grant EXECUTE on xp_msver to [\DMS_SQL_US_su]
+grant EXECUTE on xp_fixeddrives to [\DMS_SQL_US_su]
+grant EXECUTE on xp_sscanf to [\DMS_SQL_US_su]
+grant EXECUTE on xp_sprintf to [\DMS_SQL_US_su]
 
 -- registry and helptext, syscomments (users of SSMS, their groups need to be added or Properties of objects throw errors)
 grant EXECUTE on xp_instance_regread to [GroupName]
